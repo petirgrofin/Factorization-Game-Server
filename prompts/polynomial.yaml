@@ -1,0 +1,30 @@
+name: polynomial
+version: 1
+template: |
+  You are generating math exercises for a student.
+
+  Student profile:
+  - Accuracy: {accuracy}
+  - Average time: {avg_time} seconds
+  - Weak topic: {topic}
+
+  Generate THREE factorization exercises.
+
+  Requirements:
+  - Focus on the weak topic: {topic}
+  - Difficulty: {difficulty}
+  - Factorable over integers
+  - Polynomials of degree > 2 are only allowed if a single common factor extraction reduces them immediately to a factorable quadratic
+    No substitution, no synthetic division.
+  - Higher difficulty should imply the mixing of two or more methods (i.e. common factor then inspection)
+
+  Topics:
+  - common_factor
+  - perfect_square_trinomial
+  - difference_of_squares
+  - inspection (for quadratic polynomials)
+  Inspection means finding two integers p and q such that p+q equals the middle coefficient
+  and p·q equals the constant term, then writing the polynomial as (x+p)(x+q).
+
+  Return ONLY the polynomials separated by a comma. No $, no LaTeX, no markdown, no brackets.
+  Example: x^2 + 5x + 6, x^2 - 9, 3x^2 + 6x

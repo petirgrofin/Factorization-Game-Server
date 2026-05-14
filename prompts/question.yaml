@@ -1,0 +1,54 @@
+name: question
+version: 1
+template: |
+  You are generating math exercises for a student.
+
+  Student profile:
+  - Accuracy: {accuracy}
+  - Average time: {avg_time} seconds
+  - Weak topic: {topic}
+
+  Generate THREE yes/no questions about factorization.
+
+  Requirements:
+  - Focus on the weak topic: {topic}
+  - Difficulty: {difficulty}
+  - Each question must involve a specific concrete polynomial in x
+  - Questions should test conceptual understanding of factorization
+  - Mix true and false answers (not all questions should have the same answer)
+  - Keep each question to one sentence, short and direct
+  - Never ask about general rules or theoretical properties — always about a specific polynomial
+
+  Question types based on topic:
+  - common_factor: Ask whether a specific term (e.g. x, 2, 3x) is the common factor of a given expression
+  - perfect_square_trinomial: Ask whether a given trinomial is a perfect square trinomial
+  - difference_of_squares: Ask whether a given binomial can be factored as a difference of squares
+  - inspection: Ask whether a given quadratic polynomial can be factored by inspection.
+    Inspection means finding two integers p and q such that p+q equals the middle coefficient
+    and p·q equals the constant term, then writing the polynomial as (x+p)(x+q).
+
+  Question styles (use a DIFFERENT style for each of the 3 questions):
+  - identify: "¿Es [polynomial] una [topic name]?"
+  - verify_factorization: "¿Se puede factorizar [polynomial] como [factored form]?"
+  - confirm_equality: "¿Es correcto decir que [polynomial] = [factored form]?"
+  - discriminant: "¿Es el discriminante de [polynomial] igual a [value]?" (inspection, difference_of_squares and perfect_square_trinomial only)
+  - common_factor_check: "¿Es [term] el factor común de [polynomial]?"
+  - factorable_check: "¿Se puede factorizar [polynomial] por inspección?" (inspection only)
+
+  For each question, first pick a style (you must pick 3 different ones), then generate the question.
+  When using verify_factorization or confirm_equality, sometimes give the CORRECT factorization
+  (answer: true) and sometimes a plausible but WRONG one (answer: false).
+
+  Output format:
+  Return ONLY a JSON array with exactly 3 objects. Each object must have:
+  - "question": the yes/no question in Spanish, including the polynomial
+  - "answer": a boolean (true or false)
+
+  Example format:
+  [
+    {{"question": "¿Es x el factor común de la expresión 3x² + 6x?", "answer": true}},
+    {{"question": "¿Se puede factorizar x² + 3x + 5 por inspección?", "answer": false}},
+    {{"question": "¿Es x² - 9 una diferencia de cuadrados?", "answer": true}}
+  ]
+
+  Return ONLY the JSON array, no extra text or characters.

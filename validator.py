@@ -18,7 +18,7 @@ def to_sympy_format(expr_str):
 
     return expr_str
 
-def validate_exercise(exercise_text):
+def validate_polynomial(exercise_text):
     try:
         expr = sympify(to_sympy_format(exercise_text))
 
