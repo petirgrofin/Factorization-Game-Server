@@ -35,7 +35,7 @@ def generate_polynomials(data: PlayerData):
 
     result = run_generate_polynomials(player_data)
 
-    raw_exercises = [strip_formatting(p) for p in result["raw"].split(',')]
+    raw_exercises = [strip_formatting(p) for p in result["raw"]]
 
     print(raw_exercises)
 

@@ -1,6 +1,8 @@
 from langchain_google_genai import ChatGoogleGenerativeAI
 from dotenv import load_dotenv
 from prompts import load_prompt
+from rag.retriever import retrieve_examples
+import json
 
 load_dotenv()
 
@@ -18,9 +20,11 @@ def analyze_player(data):
     if accuracy < 0.5:
         difficulty = "easy"
     elif accuracy < 0.75:
-        difficulty = "medium"
-    else:
+        difficulty = "normal"
+    elif accuracy < 0.9:
         difficulty = "hard"
+    else:
+        difficulty = "very_hard"
 
     return difficulty, focus_topic
 
@@ -30,15 +34,26 @@ question_chain = load_prompt("question") | llm
 def run_generate_polynomials(player_data):
     difficulty, topic = analyze_player(player_data)
 
+    examples = retrieve_examples(
+        topic=topic,
+        difficulty=difficulty,
+        k=5
+    )
+
+    print("Examples retrieved: ", examples)
+
     response = polynomial_chain.invoke({
         "accuracy": player_data["accuracy"],
         "avg_time": player_data["avg_time"],
         "topic": topic,
-        "difficulty": difficulty
+        "difficulty": difficulty,
+        "examples": "\n".join(examples)
     })
 
+    parsed = json.loads(response.content)
+
     return {
-        "raw": response.content,
+        "raw": parsed,
         "difficulty": difficulty,
         "topic": topic
     }

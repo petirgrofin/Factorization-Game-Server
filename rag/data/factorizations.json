@@ -1,0 +1,381 @@
+[
+  {
+    "topic": "common_factor",
+    "difficulty": "easy",
+    "expression": "75x^3y - 60x^2y^2 + x"
+  },
+  {
+    "topic": "common_factor",
+    "difficulty": "easy",
+    "expression": "8x - 6z"
+  },
+  {
+    "topic": "common_factor",
+    "difficulty": "easy",
+    "expression": "x^5 + x^3 + x"
+  },
+
+  {
+    "topic": "common_factor",
+    "difficulty": "normal",
+    "expression": "-4x^6yz - 6x^4y^2z + 8x^4yz^2"
+  },
+  {
+    "topic": "common_factor",
+    "difficulty": "normal",
+    "expression": "75x^3yz + 90x^2y^3 - 60x^2y^2z^2"
+  },
+  {
+    "topic": "common_factor",
+    "difficulty": "normal",
+    "expression": "55x^6 + 22x^4"
+  },
+  {
+    "topic": "common_factor",
+    "difficulty": "normal",
+    "expression": "9b^8 + 24b^3"
+  },
+  {
+    "topic": "common_factor",
+    "difficulty": "normal",
+    "expression": "66x^3 + 11x"
+  },
+  {
+    "topic": "common_factor",
+    "difficulty": "normal",
+    "expression": "98yz + 10xz"
+  },
+
+  {
+    "topic": "common_factor",
+    "difficulty": "hard",
+    "expression": "9a^11b^3c^3 - 12a^5b^4c^2 - 12a^5b^2c^2"
+  },
+  {
+    "topic": "common_factor",
+    "difficulty": "hard",
+    "expression": "9x^2021 + 3x^2020 + 6x^2019 - 3x^2018"
+  },
+  {
+    "topic": "common_factor",
+    "difficulty": "hard",
+    "expression": "42x^6y^3 + 24x^4y^5 - 18x^3y^2z"
+  },
+  {
+    "topic": "common_factor",
+    "difficulty": "hard",
+    "expression": "3a^2c - 27b^2c"
+  },
+  {
+    "topic": "common_factor",
+    "difficulty": "hard",
+    "expression": "63x^2yz - 42xyz + 7yz"
+  },
+  {
+    "topic": "common_factor",
+    "difficulty": "hard",
+    "expression": "48x^2y^3 - 92xy^3 + 20y^3"
+  },
+  {
+    "topic": "common_factor",
+    "difficulty": "hard",
+    "expression": "68x^3y^2 - 98xy^2z"
+  },
+  {
+    "topic": "common_factor",
+    "difficulty": "hard",
+    "expression": "10x^5p^2 + 10p + 10"
+  },
+
+  {
+    "topic": "common_factor",
+    "difficulty": "very_hard",
+    "expression": "8x^3z^3 - 48x^2z"
+  },
+  {
+    "topic": "common_factor",
+    "difficulty": "very_hard",
+    "expression": "456x^2z^2 - 688xz^2 - 120z^2"
+  },
+
+  {
+    "topic": "difference_of_squares",
+    "difficulty": "easy",
+    "expression": "x^2 - z^2"
+  },
+  {
+    "topic": "difference_of_squares",
+    "difficulty": "easy",
+    "expression": "4x^2 - 9y^2"
+  },
+  {
+    "topic": "difference_of_squares",
+    "difficulty": "easy",
+    "expression": "a^2 - b^2"
+  },
+
+  {
+    "topic": "difference_of_squares",
+    "difficulty": "normal",
+    "expression": "-a^4 + a^2"
+  },
+  {
+    "topic": "difference_of_squares",
+    "difficulty": "normal",
+    "expression": "a^4 - b^4"
+  },
+  {
+    "topic": "difference_of_squares",
+    "difficulty": "normal",
+    "expression": "x^2 - 1"
+  },
+  {
+    "topic": "difference_of_squares",
+    "difficulty": "normal",
+    "expression": "p^2 - 64"
+  },
+  {
+    "topic": "difference_of_squares",
+    "difficulty": "normal",
+    "expression": "y^2 - 121"
+  },
+  {
+    "topic": "difference_of_squares",
+    "difficulty": "normal",
+    "expression": "144 - u^2"
+  },
+
+  {
+    "topic": "difference_of_squares",
+    "difficulty": "hard",
+    "expression": "9a^8 - 9z^8"
+  },
+  {
+    "topic": "difference_of_squares",
+    "difficulty": "hard",
+    "expression": "x^4 - 256"
+  },
+  {
+    "topic": "difference_of_squares",
+    "difficulty": "hard",
+    "expression": "x^8 - y^8"
+  },
+  {
+    "topic": "difference_of_squares",
+    "difficulty": "hard",
+    "expression": "5a^2 - 45"
+  },
+  {
+    "topic": "difference_of_squares",
+    "difficulty": "hard",
+    "expression": "x^16 - 2x^8y^8 + y^16"
+  },
+  {
+    "topic": "difference_of_squares",
+    "difficulty": "hard",
+    "expression": "x^8 - 65536"
+  },
+  {
+    "topic": "difference_of_squares",
+    "difficulty": "hard",
+    "expression": "a^6 - p^8"
+  },
+
+  {
+    "topic": "difference_of_squares",
+    "difficulty": "very_hard",
+    "expression": "64x^8 - 64y^8"
+  },
+  {
+    "topic": "difference_of_squares",
+    "difficulty": "very_hard",
+    "expression": "625x^4 - 6561z^4"
+  },
+  {
+    "topic": "difference_of_squares",
+    "difficulty": "very_hard",
+    "expression": "a^4 - p^4"
+  },
+  {
+    "topic": "perfect_square_trinomial",
+    "difficulty": "easy",
+    "expression": "a^2 + 2ab + b^2"
+  },
+  {
+    "topic": "perfect_square_trinomial",
+    "difficulty": "easy",
+    "expression": "a^2 - 2ab + b^2"
+  },
+  {
+    "topic": "perfect_square_trinomial",
+    "difficulty": "easy",
+    "expression": "9a^2 + 12ak + 4k^2"
+  },
+
+  {
+    "topic": "perfect_square_trinomial",
+    "difficulty": "normal",
+    "expression": "49x^2 - 70x + 25"
+  },
+  {
+    "topic": "perfect_square_trinomial",
+    "difficulty": "normal",
+    "expression": "16x^2 + 8x + 1"
+  },
+  {
+    "topic": "perfect_square_trinomial",
+    "difficulty": "normal",
+    "expression": "64a^2 - 80ab + 25b^2"
+  },
+  {
+    "topic": "perfect_square_trinomial",
+    "difficulty": "normal",
+    "expression": "4x^2 + 16x + 16"
+  },
+  {
+    "topic": "perfect_square_trinomial",
+    "difficulty": "normal",
+    "expression": "9x^2y^2 + 12xy + 4"
+  },
+  {
+    "topic": "perfect_square_trinomial",
+    "difficulty": "normal",
+    "expression": "121t^2 - 110t + 25"
+  },
+
+  {
+    "topic": "perfect_square_trinomial",
+    "difficulty": "hard",
+    "expression": "x^8 - 512x^4 + 65536"
+  },
+  {
+    "topic": "perfect_square_trinomial",
+    "difficulty": "hard",
+    "expression": "-81x^7y^3 + 108x^4y^4 - 36xy^5"
+  },
+  {
+    "topic": "perfect_square_trinomial",
+    "difficulty": "hard",
+    "expression": "121x^2 + 198xy + 81y^2"
+  },
+  {
+    "topic": "perfect_square_trinomial",
+    "difficulty": "hard",
+    "expression": "72x^2yz - 168xyz + 98yz"
+  },
+  {
+    "topic": "perfect_square_trinomial",
+    "difficulty": "hard",
+    "expression": "5x^2 - 130x + 845"
+  },
+  {
+    "topic": "perfect_square_trinomial",
+    "difficulty": "hard",
+    "expression": "144m^2yz + 192mnyz + 64n^2yz"
+  },
+
+  {
+    "topic": "perfect_square_trinomial",
+    "difficulty": "very_hard",
+    "expression": "625x^2 - 400xy + 64y^2"
+  },
+  {
+    "topic": "perfect_square_trinomial",
+    "difficulty": "very_hard",
+    "expression": "121a^2 + 22ah + h^2"
+  },
+  {
+    "topic": "perfect_square_trinomial",
+    "difficulty": "very_hard",
+    "expression": "49t^2 + 126vt + 81v^2"
+  },
+
+  {
+    "topic": "inspection",
+    "difficulty": "easy",
+    "expression": "6e^2 + 11e - 7"
+  },
+  {
+    "topic": "inspection",
+    "difficulty": "easy",
+    "expression": "x^2 + 10x + 16"
+  },
+  {
+    "topic": "inspection",
+    "difficulty": "easy",
+    "expression": "x^2 + 3x - 10"
+  },
+
+  {
+    "topic": "inspection",
+    "difficulty": "normal",
+    "expression": "84x^2 - 83x + 20"
+  },
+  {
+    "topic": "inspection",
+    "difficulty": "normal",
+    "expression": "280x^2y - 125xy - 20y"
+  },
+  {
+    "topic": "inspection",
+    "difficulty": "normal",
+    "expression": "12x^2 - 23x + 5"
+  },
+  {
+    "topic": "inspection",
+    "difficulty": "normal",
+    "expression": "2x^2 - x - 3"
+  },
+  {
+    "topic": "inspection",
+    "difficulty": "normal",
+    "expression": "6x^2 + 17x + 12"
+  },
+  {
+    "topic": "inspection",
+    "difficulty": "normal",
+    "expression": "12x^2 + 11x - 15"
+  },
+
+  {
+    "topic": "inspection",
+    "difficulty": "hard",
+    "expression": "14x^2y^2 + 16xy - 24"
+  },
+  {
+    "topic": "inspection",
+    "difficulty": "hard",
+    "expression": "6e^2 + 11e - 7"
+  },
+  {
+    "topic": "inspection",
+    "difficulty": "hard",
+    "expression": "2x^2 - xy^3 - 28y^6"
+  },
+  {
+    "topic": "inspection",
+    "difficulty": "hard",
+    "expression": "2x^2 + xy^2 - 3y^4"
+  },
+  {
+    "topic": "inspection",
+    "difficulty": "hard",
+    "expression": "-12x^2 + 31x + 15"
+  },
+  {
+    "topic": "inspection",
+    "difficulty": "hard",
+    "expression": "84x^2 - 83x + 20"
+  },
+
+  {
+    "topic": "inspection",
+    "difficulty": "very_hard",
+    "expression": "840x^2yz - 375xyz - 60yz"
+  },
+  {
+    "topic": "inspection",
+    "difficulty": "very_hard",
+    "expression": "400x^2yz + 500xyz - 150yz"
+  }
+]
