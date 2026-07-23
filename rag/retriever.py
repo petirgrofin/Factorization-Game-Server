@@ -14,11 +14,33 @@ db = Chroma(
     embedding_function=embeddings
 )
 
-def retrieve_examples(topic: str, difficulty: str, k: int = 5):
+def retrieve_examples(
+    topic: str,
+    difficulty: str,
+    mistakes: list[str],
+    k: int = 5
+):
 
-    docs = db.similarity_search(
-        query=f"{topic} {difficulty}",
+    query = f"""
+    Factorization exercises.
+
+    Topic:
+    {topic}
+
+    Difficulty:
+    {difficulty}
+
+    Student weaknesses:
+    {", ".join(mistakes)}
+
+    Retrieve structurally similar exercises.
+    Prefer exercises matching the same factorization patterns.
+    """
+
+    docs = db.max_marginal_relevance_search(
+        query=query,
         k=k,
+        fetch_k=20,
         filter={
             "$and": [
                 {"topic": {"$eq": topic}},
@@ -28,6 +50,6 @@ def retrieve_examples(topic: str, difficulty: str, k: int = 5):
     )
 
     return [
-        doc.metadata["expression"]
+        doc.page_content
         for doc in docs
     ]

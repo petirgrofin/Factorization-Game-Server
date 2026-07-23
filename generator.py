@@ -1,14 +1,13 @@
 from langchain_google_genai import ChatGoogleGenerativeAI
 from dotenv import load_dotenv
-from prompts import load_prompt
-from rag.retriever import retrieve_examples
+from server.prompts import load_prompt
+from server.rag.retriever import retrieve_examples
 import json
 
 load_dotenv()
 
 llm = ChatGoogleGenerativeAI(
-    model="gemini-2.5-flash-lite",
-    temperature=0.7
+    model="gemini-3.5-flash",
 )
 
 def analyze_player(data):
@@ -37,6 +36,7 @@ def run_generate_polynomials(player_data):
     examples = retrieve_examples(
         topic=topic,
         difficulty=difficulty,
+        mistakes=player_data["recent_mistakes"],
         k=5
     )
 
@@ -47,13 +47,14 @@ def run_generate_polynomials(player_data):
         "avg_time": player_data["avg_time"],
         "topic": topic,
         "difficulty": difficulty,
-        "examples": "\n".join(examples)
+        "examples": "\n\n".join(examples)
     })
 
-    parsed = json.loads(response.content)
+    raw_text = response.content[0]["text"]
+    parsed = json.loads(raw_text)  
 
     return {
-        "raw": parsed,
+        "raw": parsed,           
         "difficulty": difficulty,
         "topic": topic
     }
@@ -70,7 +71,7 @@ def run_generate_questions(player_data):
     })
 
     return {
-        "raw": response.content,
+        "raw": response.content[0]["text"],
         "difficulty": difficulty,
         "topic": topic
     }

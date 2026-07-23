@@ -10,19 +10,50 @@ template: |
 
   Generate THREE factorization exercises.
 
-  Use these retrieved examples as inspiration:
+  Retrieved examples and structural descriptions:
 
   {examples}
+
+  Analyze the mathematical structure of the retrieved examples.
+
+  Generate NEW exercises that:
+  - follow similar factorization patterns,
+  - match similar structural complexity,
+  - preserve the same pedagogical difficulty,
+  - are NOT copies or minor coefficient changes.
+
+  Difficulty guidelines:
+
+  easy:
+  - single-step factoring
+  - small coefficients
+
+  medium:
+  - larger coefficients
+  - mild structural complexity
+
+  hard:
+  - multi-step factoring
+  - mixed methods
+  - larger exponents or coefficients
+
+  very_hard:
+  - nested structures
+  - repeated factorization
+  - deceptive forms
 
   Requirements:
   - Focus on the weak topic: {topic}
   - Difficulty: {difficulty}
   - Factorable over integers
-  - Polynomials of degree > 2 are only allowed if a single common factor extraction reduces them immediately to a factorable quadratic
   - No substitution
   - No synthetic division
+  - No factoring by grouping 
   - Higher difficulty should imply the mixing of two or more methods
     (example: common factor then inspection)
+  - Make sure that for perfect square trinomial and inspection the polynomials are returned in the order ax^2 + bx + c
+  - Don't generate exercises where you have to use perfect square trinomial and then difference of squares (leaving, for example,
+  (x^2 - 4)^2).
 
   Topics:
   - common_factor
@@ -38,7 +69,6 @@ template: |
   (x+p)(x+q)
 
   IMPORTANT:
-  - Return ONLY valid JSON
   - No markdown
   - No explanations
   - No LaTeX

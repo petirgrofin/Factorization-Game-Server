@@ -1,6 +1,21 @@
+from sympy import symbols, sympify, Poly, factor_list
 import re
 
-from sympy import symbols, sympify, Poly, factor_list
+# import this from utils later
+def to_sympy_format(expr_str):
+    # Replace ^ with **
+    expr_str = expr_str.replace("^", "**")
+
+    # Insert * between numbers and variables
+    expr_str = re.sub(r'(\d)([a-zA-Z])', r'\1*\2', expr_str)
+
+    # Insert * between variables and parentheses
+    expr_str = re.sub(r'([a-zA-Z])\(', r'\1*(', expr_str)
+
+    # Insert * between closing/opening parentheses
+    expr_str = re.sub(r'\)\(', r')*(', expr_str)
+
+    return expr_str
 
 x, y, z, a, b, c = symbols("x y z a b c")
 
@@ -8,7 +23,7 @@ def polynomial_description(expr_str: str):
 
     expr_str = expr_str.replace("^", "**")
 
-    expr = sympify(expr_str)
+    expr = sympify(to_sympy_format(expr_str))
 
     poly = Poly(expr)
 

@@ -1,5 +1,5 @@
 name: question
-version: 1
+version: 4
 template: |
   You are generating math exercises for a student.
 
@@ -8,47 +8,133 @@ template: |
   - Average time: {avg_time} seconds
   - Weak topic: {topic}
 
-  Generate THREE yes/no questions about factorization.
+  Generate EXACTLY TEN yes/no questions about polynomial factorization.
+  All text must be in Spanish. Write all polynomials as plain text (no LaTeX, no fractions).
 
-  Requirements:
-  - Focus on the weak topic: {topic}
-  - Difficulty: {difficulty}
-  - Each question must involve a specific concrete polynomial in x
-  - Questions should test conceptual understanding of factorization
-  - Mix true and false answers (not all questions should have the same answer)
-  - Keep each question to one sentence, short and direct
-  - Never ask about general rules or theoretical properties — always about a specific polynomial
+  ─────────────────────────────────────────
+  FACTORIZATION METHODS — STRICT LIST
+  ─────────────────────────────────────────
+  You may ONLY use these four methods (alone or combined):
+    1. Common factor (GCF)
+    2. Difference of squares
+    3. Perfect square trinomial
+    4. Inspection (integer factor pairs)
 
-  Question types based on topic:
-  - common_factor: Ask whether a specific term (e.g. x, 2, 3x) is the common factor of a given expression
-  - perfect_square_trinomial: Ask whether a given trinomial is a perfect square trinomial
-  - difference_of_squares: Ask whether a given binomial can be factored as a difference of squares
-  - inspection: Ask whether a given quadratic polynomial can be factored by inspection.
-    Inspection means finding two integers p and q such that p+q equals the middle coefficient
-    and p·q equals the constant term, then writing the polynomial as (x+p)(x+q).
+  Do NOT use: sum/difference of cubes, completing the square, quadratic formula,
+  grouping (4-term), or any method not listed above.
 
-  Question styles (use a DIFFERENT style for each of the 3 questions):
-  - identify: "¿Es [polynomial] una [topic name]?"
-  - verify_factorization: "¿Se puede factorizar [polynomial] como [factored form]?"
-  - confirm_equality: "¿Es correcto decir que [polynomial] = [factored form]?"
-  - discriminant: "¿Es el discriminante de [polynomial] igual a [value]?" (inspection, difference_of_squares and perfect_square_trinomial only)
-  - common_factor_check: "¿Es [term] el factor común de [polynomial]?"
-  - factorable_check: "¿Se puede factorizar [polynomial] por inspección?" (inspection only)
+  ─────────────────────────────────────────
+  DIFFICULTY: {difficulty}
+  ─────────────────────────────────────────
+  easy       - single-step, one method, simple coefficients
+  medium     - structural recognition or one small transformation
+  hard       - multi-step; mixed methods; disguised forms
+  very_hard  - 2+ step reasoning; nested structure; non-obvious setups;
+               no trivial single-step questions
 
-  For each question, first pick a style (you must pick 3 different ones), then generate the question.
-  When using verify_factorization or confirm_equality, sometimes give the CORRECT factorization
-  (answer: true) and sometimes a plausible but WRONG one (answer: false).
+  ─────────────────────────────────────────
+  ANSWER BALANCE — HARD CONSTRAINT
+  ─────────────────────────────────────────
+  Before writing any question, decide the answer for each slot.
+  You MUST use this exact split: 5 true and 5 false answers.
+  Assign them in a shuffled, non-grouped order (do not put all trues first).
 
-  Output format:
-  Return ONLY a JSON array with exactly 3 objects. Each object must have:
-  - "question": the yes/no question in Spanish, including the polynomial
-  - "answer": a boolean (true or false)
+  Commit to this sequence internally before writing question text.
+  The final JSON must reflect exactly 5 true and 5 false values.
 
-  Example format:
+  Strategies for FALSE answers (use variety, not just one):
+    - Propose a factorization with a sign error
+    - Propose a factorization with a wrong exponent
+    - Propose a factorization that expands to a different polynomial
+    - Claim a factorable polynomial cannot be factored over the integers
+    - Claim a non-factorable polynomial can be factored over the integers
+    - Propose a factorization where the GCF was not fully extracted
+    - Describe a step in a solution process that is wrong but plausible
+
+  ─────────────────────────────────────────
+  QUESTION STYLE — PROBLEMS WITH CONTEXT
+  ─────────────────────────────────────────
+  The majority of questions must be SHORT PROBLEMS embedded in a real or
+  semi-real context, not naked "¿Es factorizable X?" exercises.
+
+  A problem gives the student a situation, a claim, a process, or a scenario
+  to evaluate — not just a polynomial to inspect.
+
+  Strong problem formats (use freely, invent your own):
+    - A student shows their work on a factorization step — is it correct?
+    - A teacher claims a shortcut applies to a certain polynomial — does it?
+    - A rectangle's area is given as a polynomial — can its sides be expressed
+      as integer binomials?
+    - Two students propose different factorizations of the same polynomial —
+      is one of them right?
+    - A polynomial appears inside a word problem (perimeter, area, consecutive
+      integers) — does a proposed factorization hold?
+    - A factorization is presented as partially complete — is the remaining
+      factor correct?
+    - A polynomial is claimed to already be fully factored — is that true?
+
+  Avoid or minimize:
+    - "¿Es X factorizable como Y?" with no context
+    - "¿Es X un trinomio cuadrado perfecto?" with no context
+    - Any format that could be answered by pattern-matching alone
+
+  ─────────────────────────────────────────
+  CONCRETE EXAMPLES of the problem style to aim for:
+  ─────────────────────────────────────────
+  EXAMPLE 1 (context: student error):
+    "Ana está factorizando 3x^2 - 12x y escribe como primer paso: 3(x^2 - 4x).
+     Luego concluye que la factorización completa es 3(x - 4). ¿Es correcta
+     su conclusión final?"
+    answer: false  [she forgot to factor out the x; complete is 3x(x - 4)]
+
+  EXAMPLE 2 (context: geometry):
+    "El área de un rectángulo se expresa como 2t^2 + 8t. Un estudiante propone
+     que las dimensiones del rectángulo pueden ser (2t) y (t + 4). ¿Es correcta
+     esa propuesta?"
+    answer: true
+
+  EXAMPLE 3 (context: competing claims):
+    "Dos estudiantes factorizan x^2 - 10x + 25. Carlos dice el resultado es
+     (x - 5)^2. Laura dice es (x + 5)(x - 5). ¿Tiene razón Carlos?"
+    answer: true
+
+  EXAMPLE 4 (context: partial factorization):
+    "Al factorizar 4x^3 - 16x, un estudiante llega a 4x(x^2 - 4) y dice que
+     ya terminó. ¿Es correcto afirmar que la factorización está completa?"
+    answer: false  [x^2 - 4 can still be factored as (x-2)(x+2)]
+
+  ─────────────────────────────────────────
+  REQUIRED DIVERSITY
+  ─────────────────────────────────────────
+  - At least 3 different factorization methods across the 10 questions
+  - No two questions use the same polynomial or the same structural pattern
+  - At least 2 questions use a variable other than x
+  - At least 2 questions involve multi-step factorization
+  - At least 1 question involves a leading coefficient other than 1
+  - No two questions use the same problem framing or context
+
+  ─────────────────────────────────────────
+  OUTPUT FORMAT — STRICT
+  ─────────────────────────────────────────
+  - No markdown
+  - No explanations outside the JSON
+  - No code fences
+  - Output ONLY the raw JSON array below, nothing else before or after it
+
   [
-    {{"question": "¿Es x el factor común de la expresión 3x² + 6x?", "answer": true}},
-    {{"question": "¿Se puede factorizar x² + 3x + 5 por inspección?", "answer": false}},
-    {{"question": "¿Es x² - 9 una diferencia de cuadrados?", "answer": true}}
+    {{
+      "id": 1,
+      "contexto": "...",
+      "pregunta": "...",
+      "respuesta_correcta": "Sí" or "No",
+      "explicacion": "..."
+    }},
+    ...
   ]
 
-  Return ONLY the JSON array, no extra text or characters.
+  Rules for each field:
+  - "id": integer from 1 to 10
+  - "contexto": the problem setup in Spanish (the scenario, claim, or situation)
+  - "pregunta": the yes/no question in Spanish, always ending with "?"
+  - "respuesta_correcta": exactly the string "Sí" or "No", nothing else
+  - "explicacion": a brief explanation in Spanish of why the answer is correct
