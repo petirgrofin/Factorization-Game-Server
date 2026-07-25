@@ -1,7 +1,7 @@
 name: polynomial
 version: 1
 template: |
-  You are generating math exercises for a student.
+  You are generating math exercises for a student in a game.
 
   Student profile:
   - Accuracy: {accuracy}
@@ -10,11 +10,34 @@ template: |
 
   Generate THREE factorization exercises.
 
+  Each mistake has the following meaning:
+
+  - Original polynomial: the complete exercise originally presented to the player.
+  - Current factorization: the expression remaining at the current step of the factorization process.
+  - Selected factor: the specific polynomial the player attempted to factor.
+  - Method used: the factorization method expected at this step.
+  - Player inputs: the factor entered by the player.
+  - Interpreted attempt: how the system interpreted the player's input.
+  - Expanded attempt: the interpreted factorization after expansion.
+  - Equivalent to selected factor: whether the expanded attempt is algebraically equivalent to the selected factor.
+  - Diagnostic information: additional information about why the attempt succeeded or failed.
+
+  The game is step-by-step.
+
+  At each step, the player selects one factor of the current expression and applies a single factorization method.
+
+  The mistake log describes one such step, not necessarily the entire original exercise.
+
+  Recent player mistakes:
+
+  {mistakes}
+
   Retrieved examples and structural descriptions:
 
   {examples}
 
-  Analyze the mathematical structure of the retrieved examples.
+  Analyze the mistake history to identify what the student struggles with.
+  Analyze the mathematical structure of the retrieved examples. 
 
   Generate NEW exercises that:
   - follow similar factorization patterns,

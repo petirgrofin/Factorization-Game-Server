@@ -1,12 +1,15 @@
 import json
+import re
+
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+from typing import Annotated, Literal, Union
 
 from server.generator import run_generate_polynomials, run_generate_questions
 from server.agent_generator import run_agent
 from server.validator import validate_polynomial
+from server.mistake_interpreter import enrich_mistakes
 
-import re
 
 def strip_formatting(expr: str) -> str:
     expr = expr.strip()
@@ -15,97 +18,166 @@ def strip_formatting(expr: str) -> str:
     expr = re.sub(r"[{}\[\]]", "", expr)
     return expr.strip()
 
-app = FastAPI()
+
+class PolynomialMistake(BaseModel):
+    type: Literal["polynomial"] = "polynomial"
+
+    original_polynomial: str
+    current_factorization: str
+
+    method_id: str | None = None
+    method: Literal[
+        "common_factor",
+        "perfect_square_trinomial",
+        "difference_of_squares",
+        "inspection"
+    ]
+
+    target_factor: str
+    inputs: list[str]
+
+
+class QuestionMistake(BaseModel):
+    type: Literal["question"] = "question"
+    question_text: str
+    player_response: bool
+    correct_response: bool | None = None
+
+
+Mistake = Annotated[
+    Union[PolynomialMistake, QuestionMistake],
+    Field(discriminator="type")
+]
+
 
 class PlayerData(BaseModel):
     accuracy: float
     avg_time: float
-    recent_mistakes: list[str]
+    mistakes: list[Mistake] = Field(default_factory=list)
 
-# --- Generator.py endpoints ---
+
+def serialize_player_data(data: PlayerData) -> dict:
+    player_data = data.model_dump()
+
+    player_data["mistakes"] = enrich_mistakes(
+        player_data["mistakes"]
+    )
+
+    return player_data
+
+
+app = FastAPI()
+
 
 @app.get("/")
 def root():
     return {"status": "running"}
 
+
 @app.post("/generate-polynomials")
 def generate_polynomials(data: PlayerData):
-    player_data = {
-        "accuracy": data.accuracy,
-        "avg_time": data.avg_time,
-        "recent_mistakes": data.recent_mistakes
-    }
+    serialized_data = serialize_player_data(data)
+    print(serialized_data)
+    result = run_generate_polynomials(serialized_data)
 
-    result = run_generate_polynomials(player_data)
-    raw_exercises = [strip_formatting(p) for p in result["raw"]]
+    raw_exercises = [
+        strip_formatting(str(polynomial))
+        for polynomial in result["raw"]
+    ]
 
-    validated_exercises = []
-    for exercise in raw_exercises:
-        if validate_polynomial(exercise):
-            validated_exercises.append(exercise)
-        else:
-            validated_exercises.append("")
-
-    return {"polynomials": validated_exercises}
-
-
-@app.post("/generate-questions")
-def generate_questions(data: PlayerData):
-    player_data = {
-        "accuracy": data.accuracy,
-        "avg_time": data.avg_time,
-        "recent_mistakes": data.recent_mistakes
-    }
-
-    result = run_generate_questions(player_data)
-
-    try:
-        raw = result["raw"].strip().removeprefix("```json").removeprefix("```").removesuffix("```").strip()
-        questions = json.loads(raw)
-    except json.JSONDecodeError:
-        raise HTTPException(status_code=500, detail="Model returned invalid JSON")
-
-    # print(questions)
+    validated_exercises = [
+        exercise if validate_polynomial(exercise) else ""
+        for exercise in raw_exercises
+    ]
 
     return {
-        "questions": questions,
+        "polynomials": validated_exercises,
         "difficulty": result["difficulty"],
         "topic": result["topic"]
     }
 
 
-# --- Agent endpoints ---
-
-@app.post("/agent/generate-polynomials")
-def agent_generate_polynomials(data: PlayerData):
-    player_data = {
-        "accuracy": data.accuracy,
-        "avg_time": data.avg_time,
-        "recent_mistakes": data.recent_mistakes
-    }
-
-    try:
-        result = run_agent({**player_data, "force_mode": "polynomial"})
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Agent error: {str(e)}")
-
-    if result["mode"] != "polynomial":
-        raise HTTPException(status_code=500, detail="Agent returned wrong mode")
+@app.post("/generate-questions")
+def generate_questions(data: PlayerData):
+    result = run_generate_questions(serialize_player_data(data))
 
     raw = result["raw"]
 
-    # raw may be a list already (parsed JSON) or a string
     if isinstance(raw, str):
         try:
-            raw = raw.strip().removeprefix("```json").removeprefix("```").removesuffix("```").strip()
-            raw = json.loads(raw)
-        except json.JSONDecodeError:
-            raise HTTPException(status_code=500, detail="Agent returned invalid JSON for polynomials")
+            cleaned = (
+                raw.strip()
+                .removeprefix("```json")
+                .removeprefix("```")
+                .removesuffix("```")
+                .strip()
+            )
+            raw = json.loads(cleaned)
+        except json.JSONDecodeError as exc:
+            raise HTTPException(
+                status_code=500,
+                detail="Model returned invalid JSON"
+            ) from exc
+
+    return {
+        "questions": raw,
+        "difficulty": result["difficulty"],
+        "topic": result["topic"]
+    }
+
+
+@app.post("/agent/generate-polynomials")
+def agent_generate_polynomials(data: PlayerData):
+    player_data = serialize_player_data(data)
+
+    try:
+        result = run_agent({
+            **player_data,
+            "force_mode": "polynomial"
+        })
+    except Exception as exc:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Agent error: {exc}"
+        ) from exc
+
+    if result["mode"] != "polynomial":
+        raise HTTPException(
+            status_code=500,
+            detail="Agent returned wrong mode"
+        )
+
+    raw = result["raw"]
+
+    if isinstance(raw, str):
+        try:
+            cleaned = (
+                raw.strip()
+                .removeprefix("```json")
+                .removeprefix("```")
+                .removesuffix("```")
+                .strip()
+            )
+            raw = json.loads(cleaned)
+        except json.JSONDecodeError as exc:
+            raise HTTPException(
+                status_code=500,
+                detail="Agent returned invalid JSON for polynomials"
+            ) from exc
+
+    if not isinstance(raw, list):
+        raise HTTPException(
+            status_code=500,
+            detail="Agent polynomial output must be a list"
+        )
 
     validated_exercises = []
+
     for exercise in raw:
         cleaned = strip_formatting(str(exercise))
-        validated_exercises.append(cleaned if validate_polynomial(cleaned) else "")
+        validated_exercises.append(
+            cleaned if validate_polynomial(cleaned) else ""
+        )
 
     return {
         "polynomials": validated_exercises,
@@ -117,28 +189,42 @@ def agent_generate_polynomials(data: PlayerData):
 
 @app.post("/agent/generate-questions")
 def agent_generate_questions(data: PlayerData):
-    player_data = {
-        "accuracy": data.accuracy,
-        "avg_time": data.avg_time,
-        "recent_mistakes": data.recent_mistakes
-    }
+    player_data = serialize_player_data(data)
 
     try:
-        result = run_agent({**player_data, "force_mode": "question"})
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Agent error: {str(e)}")
+        result = run_agent({
+            **player_data,
+            "force_mode": "question"
+        })
+    except Exception as exc:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Agent error: {exc}"
+        ) from exc
 
     if result["mode"] != "question":
-        raise HTTPException(status_code=500, detail="Agent returned wrong mode")
+        raise HTTPException(
+            status_code=500,
+            detail="Agent returned wrong mode"
+        )
 
     raw = result["raw"]
 
     if isinstance(raw, str):
         try:
-            raw = raw.strip().removeprefix("```json").removeprefix("```").removesuffix("```").strip()
-            raw = json.loads(raw)
-        except json.JSONDecodeError:
-            raise HTTPException(status_code=500, detail="Agent returned invalid JSON for questions")
+            cleaned = (
+                raw.strip()
+                .removeprefix("```json")
+                .removeprefix("```")
+                .removesuffix("```")
+                .strip()
+            )
+            raw = json.loads(cleaned)
+        except json.JSONDecodeError as exc:
+            raise HTTPException(
+                status_code=500,
+                detail="Agent returned invalid JSON for questions"
+            ) from exc
 
     return {
         "questions": raw,

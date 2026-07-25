@@ -4,6 +4,10 @@ from pathlib import Path
 
 CHROMA_PATH = Path(__file__).parent.parent / "chroma_db"
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
 embeddings = GoogleGenerativeAIEmbeddings(
     model="models/gemini-embedding-2",
     task_type="retrieval_query"
@@ -17,24 +21,13 @@ db = Chroma(
 def retrieve_examples(
     topic: str,
     difficulty: str,
-    mistakes: list[str],
+    mistakes: str,
     k: int = 5
 ):
-
     query = f"""
-    Factorization exercises.
-
-    Topic:
     {topic}
-
-    Difficulty:
     {difficulty}
-
-    Student weaknesses:
-    {", ".join(mistakes)}
-
-    Retrieve structurally similar exercises.
-    Prefer exercises matching the same factorization patterns.
+    {mistakes}
     """
 
     docs = db.max_marginal_relevance_search(
