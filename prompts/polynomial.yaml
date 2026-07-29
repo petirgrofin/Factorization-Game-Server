@@ -3,104 +3,120 @@ version: 1
 template: |
   You are generating math exercises for a student in a game.
 
-  Student profile:
-  - Accuracy: {accuracy}
-  - Average time: {avg_time} seconds
-  - Weak topic: {topic}
+  Generate exactly {total_exercises} factorization exercises.
 
-  Generate THREE factorization exercises.
+  The server has already analyzed the player's performance for each factorization method.
 
-  Each mistake has the following meaning:
+  Method performance:
 
-  - Original polynomial: the complete exercise originally presented to the player.
-  - Current factorization: the expression remaining at the current step of the factorization process.
-  - Selected factor: the specific polynomial the player attempted to factor.
-  - Method used: the factorization method expected at this step.
-  - Player inputs: the factor entered by the player.
-  - Interpreted attempt: how the system interpreted the player's input.
-  - Expanded attempt: the interpreted factorization after expansion.
-  - Equivalent to selected factor: whether the expanded attempt is algebraically equivalent to the selected factor.
-  - Diagnostic information: additional information about why the attempt succeeded or failed.
+  {method_performance}
 
-  The game is step-by-step.
+  You must follow this exercise plan exactly:
 
-  At each step, the player selects one factor of the current expression and applies a single factorization method.
+  {exercise_plan}
 
-  The mistake log describes one such step, not necessarily the entire original exercise.
+  Each entry in the exercise plan contains:
 
-  Recent player mistakes:
-
-  {mistakes}
+  method: the principal factorization method to practice
+  difficulty: the required difficulty
+  count: the exact number of exercises to generate
+  category:
+    focus: the method was relegated or remained at the same difficulty and requires more practice
+    review: the method was promoted and should be reinforced
 
   Retrieved examples and structural descriptions:
 
   {examples}
 
-  Analyze the mistake history to identify what the student struggles with.
-  Analyze the mathematical structure of the retrieved examples. 
+  Analyze the mathematical structure of the retrieved examples.
 
   Generate NEW exercises that:
-  - follow similar factorization patterns,
-  - match similar structural complexity,
-  - preserve the same pedagogical difficulty,
-  - are NOT copies or minor coefficient changes.
+
+  follow similar factorization patterns,
+  match similar structural complexity,
+  preserve the same pedagogical difficulty,
+  are NOT copies or minor coefficient changes.
 
   Difficulty guidelines:
 
   easy:
-  - single-step factoring
-  - small coefficients
+
+  single-step factoring
+  small coefficients
 
   medium:
-  - larger coefficients
-  - mild structural complexity
+
+  larger coefficients
+  mild structural complexity
 
   hard:
-  - multi-step factoring
-  - mixed methods
-  - larger exponents or coefficients
+
+  multi-step factoring
+  mixed methods
+  larger exponents or coefficients
 
   very_hard:
-  - nested structures
-  - repeated factorization
-  - deceptive forms
+
+  nested structures
+  repeated factorization
+  deceptive forms
 
   Requirements:
-  - Focus on the weak topic: {topic}
-  - Difficulty: {difficulty}
-  - Factorable over integers
-  - No substitution
-  - No synthetic division
-  - No factoring by grouping 
-  - Higher difficulty should imply the mixing of two or more methods
-    (example: common factor then inspection)
-  - Make sure that for perfect square trinomial and inspection the polynomials are returned in the order ax^2 + bx + c
-  - Don't generate exercises where you have to use perfect square trinomial and then difference of squares (leaving, for example,
+
+  Follow the method, difficulty, and count specified in the exercise plan
+  Generate exactly the requested number of exercises for each method
+  The total number of exercises must be exactly {total_exercises}
+  Factorable over integers
+  No substitution
+  No synthetic division
+  No factoring by grouping
+  Higher difficulty should imply the mixing of two or more methods
+  (example: common factor then inspection)
+  Make sure that for perfect square trinomial and inspection the polynomials are returned in the order ax^2 + bx + c
+  Don't generate exercises where you have to use perfect square trinomial and then difference of squares (leaving, for example,
   (x^2 - 4)^2).
 
   Topics:
-  - common_factor
-  - perfect_square_trinomial
-  - difference_of_squares
-  - inspection
+
+  common_factor
+  perfect_square_trinomial
+  difference_of_squares
+  inspection
 
   Inspection means finding two integers p and q such that:
-  - p + q equals the middle coefficient
-  - p·q equals the constant term
+
+  p + q equals the middle coefficient
+  p·q equals the constant term
 
   Then writing the polynomial as:
   (x+p)(x+q)
 
   IMPORTANT:
-  - No markdown
-  - No explanations
-  - No LaTeX
-  - No code fences
+
+  No markdown
+  No explanations
+  No LaTeX
+  No code fences
+  Return valid JSON only
+  Each exercise must include the polynomial, its principal method, and its requested difficulty
+  The method and difficulty must match the exercise plan
 
   Output format:
 
   [
-    "x^2 + 5x + 6",
-    "x^2 - 9",
-    "3x^2 + 6x"
+  {{
+  "polynomial": "x^2 + 5x + 6",
+  "method": "inspection",
+  "difficulty": "medium"
+  }},
+  {{
+  "polynomial": "x^2 - 9",
+  "method": "difference_of_squares",
+  "difficulty": "easy"
+  }},
+  {{
+  "polynomial": "3x^2 + 6x",
+  "method": "common_factor",
+  "difficulty": "easy"
+  }}
   ]

@@ -1,140 +1,248 @@
 name: question
-version: 4
+version: 5
 template: |
-  You are generating math exercises for a student.
+  You are generating adaptive math questions for a student.
 
-  Student profile:
-  - Accuracy: {accuracy}
-  - Average time: {avg_time} seconds
-  - Weak topic: {topic}
+  All text shown to the student must be in Spanish.
+  Write all polynomials as plain text. Do not use LaTeX or fractions.
 
-  Generate EXACTLY TEN yes/no questions about polynomial factorization.
-  All text must be in Spanish. Write all polynomials as plain text (no LaTeX, no fractions).
+  ─────────────────────────────────────────
+  STUDENT METHOD PERFORMANCE
+  ─────────────────────────────────────────
+  The following information describes the student's performance for each
+  available factorization method:
+
+  {method_performance}
+
+  Use this information only as pedagogical context. The exercise plan below
+  is the authoritative source for how many questions of each method and
+  difficulty you must generate.
+
+  ─────────────────────────────────────────
+  EXERCISE PLAN — HARD CONSTRAINT
+  ─────────────────────────────────────────
+  You must generate questions according to this exact plan:
+
+  {exercise_plan}
+
+  Generate exactly {total_questions} questions in total.
+
+  Each plan item contains:
+  - "method": the factorization method being evaluated
+  - "difficulty": the required difficulty
+  - "count": the exact number of questions to generate
+  - "category": the pedagogical purpose of those questions
+
+  For every plan item, generate exactly its requested "count".
+
+  The final number of questions for every method-difficulty combination must
+  exactly match the exercise plan. Do not replace one requested method with
+  another. Do not change any requested difficulty.
+
+  Arrange the final questions in a mixed order. Do not place all questions
+  from the same method consecutively.
 
   ─────────────────────────────────────────
   FACTORIZATION METHODS — STRICT LIST
   ─────────────────────────────────────────
-  You may ONLY use these four methods (alone or combined):
-    1. Common factor (GCF)
-    2. Difference of squares
-    3. Perfect square trinomial
-    4. Inspection (integer factor pairs)
+  You may only use these method identifiers:
 
-  Do NOT use: sum/difference of cubes, completing the square, quadratic formula,
-  grouping (4-term), or any method not listed above.
+  - common_factor
+  - difference_of_squares
+  - perfect_square_trinomial
+  - inspection
+
+  Meaning of each identifier:
+
+  1. common_factor
+     Extract the greatest common numerical or monomial factor.
+
+  2. difference_of_squares
+     Use a^2 - b^2 = (a - b)(a + b).
+
+  3. perfect_square_trinomial
+     Recognize forms equivalent to:
+     a^2 + 2ab + b^2
+     a^2 - 2ab + b^2
+
+  4. inspection
+     Factor quadratic expressions by finding integer factor pairs.
+
+  A question may require more than one step when its difficulty requires it.
+  In that case, the "method" field must contain the principal method requested
+  by the exercise plan.
+
+  You must not use:
+  - Sum or difference of cubes
+  - Completing the square
+  - Quadratic formula
+  - Synthetic division
+  - Factoring by grouping
+  - Substitution
+  - Any factorization method outside the strict list
 
   ─────────────────────────────────────────
-  DIFFICULTY: {difficulty}
+  DIFFICULTY DEFINITIONS
   ─────────────────────────────────────────
-  easy       - single-step, one method, simple coefficients
-  medium     - structural recognition or one small transformation
-  hard       - multi-step; mixed methods; disguised forms
-  very_hard  - 2+ step reasoning; nested structure; non-obvious setups;
-               no trivial single-step questions
+  easy:
+  - One direct step
+  - One clearly recognizable method
+  - Small integer coefficients
+  - Minimal visual or algebraic distraction
+
+  medium:
+  - Requires structural recognition
+  - May require one simple preliminary transformation
+  - Moderate integer coefficients
+  - The appropriate method is not immediately stated
+
+  hard:
+  - Requires multiple steps or a combination of allowed methods
+  - May contain a disguised structure
+  - Includes plausible intermediate errors
+  - Requires checking whether the factorization is complete
+
+  very_hard:
+  - Requires at least two meaningful reasoning steps
+  - Uses a nested or non-obvious structure
+  - May combine allowed methods
+  - Must not be a trivial one-step recognition question
+
+  Every question must genuinely match the difficulty assigned to it in the
+  exercise plan.
 
   ─────────────────────────────────────────
   ANSWER BALANCE — HARD CONSTRAINT
   ─────────────────────────────────────────
-  Before writing any question, decide the answer for each slot.
-  You MUST use this exact split: 5 true and 5 false answers.
-  Assign them in a shuffled, non-grouped order (do not put all trues first).
+  Before writing any question, determine the answer for each slot.
 
-  Commit to this sequence internally before writing question text.
-  The final JSON must reflect exactly 5 true and 5 false values.
+  You must use exactly:
+  - 5 questions whose "respuesta_correcta" is true
+  - 5 questions whose "respuesta_correcta" is false
 
-  Strategies for FALSE answers (use variety, not just one):
-    - Propose a factorization with a sign error
-    - Propose a factorization with a wrong exponent
-    - Propose a factorization that expands to a different polynomial
-    - Claim a factorable polynomial cannot be factored over the integers
-    - Claim a non-factorable polynomial can be factored over the integers
-    - Propose a factorization where the GCF was not fully extracted
-    - Describe a step in a solution process that is wrong but plausible
+  Use a shuffled and non-grouped order. Do not put all affirmative or all
+  negative answers together.
 
-  ─────────────────────────────────────────
-  QUESTION STYLE — PROBLEMS WITH CONTEXT
-  ─────────────────────────────────────────
-  The majority of questions must be SHORT PROBLEMS embedded in a real or
-  semi-real context, not naked "¿Es factorizable X?" exercises.
+  Strategies for incorrect claims include:
+  - A sign error
+  - An incorrect exponent
+  - A factorization that expands to a different polynomial
+  - Claiming that a factorable polynomial is irreducible over the integers
+  - Claiming that a non-factorable polynomial factors over the integers
+  - Extracting a common factor that is not the greatest common factor
+  - Omitting a variable from a common factor
+  - Claiming that a partial factorization is complete
+  - Using the correct method incorrectly
+  - Presenting a plausible but invalid intermediate step
 
-  A problem gives the student a situation, a claim, a process, or a scenario
-  to evaluate — not just a polynomial to inspect.
-
-  Strong problem formats (use freely, invent your own):
-    - A student shows their work on a factorization step — is it correct?
-    - A teacher claims a shortcut applies to a certain polynomial — does it?
-    - A rectangle's area is given as a polynomial — can its sides be expressed
-      as integer binomials?
-    - Two students propose different factorizations of the same polynomial —
-      is one of them right?
-    - A polynomial appears inside a word problem (perimeter, area, consecutive
-      integers) — does a proposed factorization hold?
-    - A factorization is presented as partially complete — is the remaining
-      factor correct?
-    - A polynomial is claimed to already be fully factored — is that true?
-
-  Avoid or minimize:
-    - "¿Es X factorizable como Y?" with no context
-    - "¿Es X un trinomio cuadrado perfecto?" with no context
-    - Any format that could be answered by pattern-matching alone
+  Use several different error types.
 
   ─────────────────────────────────────────
-  CONCRETE EXAMPLES of the problem style to aim for:
+  QUESTION STYLE — CONTEXTUAL PROBLEMS
   ─────────────────────────────────────────
-  EXAMPLE 1 (context: student error):
-    "Ana está factorizando 3x^2 - 12x y escribe como primer paso: 3(x^2 - 4x).
-     Luego concluye que la factorización completa es 3(x - 4). ¿Es correcta
-     su conclusión final?"
-    answer: false  [she forgot to factor out the x; complete is 3x(x - 4)]
+  Most questions must be short problems embedded in a real, educational,
+  geometric, or semi-real scenario.
 
-  EXAMPLE 2 (context: geometry):
-    "El área de un rectángulo se expresa como 2t^2 + 8t. Un estudiante propone
-     que las dimensiones del rectángulo pueden ser (2t) y (t + 4). ¿Es correcta
-     esa propuesta?"
-    answer: true
+  A question should present a situation, claim, procedure, comparison, or
+  proposed solution for the student to evaluate.
 
-  EXAMPLE 3 (context: competing claims):
-    "Dos estudiantes factorizan x^2 - 10x + 25. Carlos dice el resultado es
-     (x - 5)^2. Laura dice es (x + 5)(x - 5). ¿Tiene razón Carlos?"
-    answer: true
+  Possible formats include:
+  - A student presents a factorization step
+  - A teacher proposes a shortcut
+  - A rectangle has an area represented by a polynomial
+  - Two students compare different solutions
+  - A student claims that a factorization is complete
+  - A program displays a suggested factorization
+  - A classmate identifies a particular factorization pattern
+  - A construction or design problem uses polynomial dimensions
+  - A student corrects one part of another student's work
+  - A solution contains a partially extracted common factor
 
-  EXAMPLE 4 (context: partial factorization):
-    "Al factorizar 4x^3 - 16x, un estudiante llega a 4x(x^2 - 4) y dice que
-     ya terminó. ¿Es correcto afirmar que la factorización está completa?"
-    answer: false  [x^2 - 4 can still be factored as (x-2)(x+2)]
+  Do not repeatedly use the same context.
+
+  Avoid:
+  - Context-free questions of the form
+    "¿Es X factorizable como Y?"
+  - Asking only whether an expression belongs to a named pattern
+  - Questions that can be answered without checking the algebra
+  - Reusing the same polynomial structure with different coefficients
 
   ─────────────────────────────────────────
   REQUIRED DIVERSITY
   ─────────────────────────────────────────
-  - At least 3 different factorization methods across the 10 questions
-  - No two questions use the same polynomial or the same structural pattern
-  - At least 2 questions use a variable other than x
-  - At least 2 questions involve multi-step factorization
-  - At least 1 question involves a leading coefficient other than 1
-  - No two questions use the same problem framing or context
+  Across the complete set:
+
+  - Follow the method distribution in the exercise plan exactly
+  - Follow the difficulty distribution in the exercise plan exactly
+  - Do not use the same polynomial twice
+  - Do not use the same structural pattern twice unless the plan makes it
+    unavoidable
+  - Use at least two variables other than x
+  - Include multi-step questions whenever requested by hard or very_hard
+    plan entries
+  - Include leading coefficients other than 1
+  - Do not reuse the same problem framing
+  - Vary between correct solutions, incorrect solutions, partial solutions,
+    comparisons, and claims about complete factorization
 
   ─────────────────────────────────────────
   OUTPUT FORMAT — STRICT
   ─────────────────────────────────────────
-  - No markdown
-  - No explanations outside the JSON
-  - No code fences
-  - Output ONLY the raw JSON array below, nothing else before or after it
+  Return only a raw JSON array.
+
+  Do not use Markdown.
+  Do not use code fences.
+  Do not write explanations before or after the JSON.
+
+  The output must have this structure:
 
   [
     {{
       "id": 1,
+      "method": "common_factor",
+      "difficulty": "easy",
       "contexto": "...",
-      "pregunta": "...",
-      "respuesta_correcta": "Sí" or "No",
+      "pregunta": "...?",
+      "respuesta_correcta": true,
       "explicacion": "..."
-    }},
-    ...
+    }}
   ]
 
   Rules for each field:
-  - "id": integer from 1 to 10
-  - "contexto": the problem setup in Spanish (the scenario, claim, or situation)
-  - "pregunta": the yes/no question in Spanish, always ending with "?"
-  - "respuesta_correcta": exactly the string "Sí" or "No", nothing else
-  - "explicacion": a brief explanation in Spanish of why the answer is correct
+
+  - "id":
+    Integer from 1 to {total_questions}. IDs must be consecutive.
+
+  - "method":
+    Exactly one of:
+    "common_factor",
+    "difference_of_squares",
+    "perfect_square_trinomial",
+    "inspection"
+
+    It must match one of the method slots requested by the exercise plan.
+
+  - "difficulty":
+    Exactly one of:
+    "easy",
+    "medium",
+    "hard",
+    "very_hard"
+
+    It must match the difficulty associated with that method slot in the
+    exercise plan.
+
+  - "contexto":
+    A short scenario, claim, process, or problem setup in Spanish.
+
+  - "pregunta":
+    A yes/no question in Spanish. It must always end with "?".
+
+  - "respuesta_correcta":
+    A JSON boolean:
+    - true when the correct answer is Sí
+    - false when the correct answer is No
+
+  - "explicacion":
+    A brief Spanish explanation that verifies the claim algebraically and
+    states the correct factorization when appropriate.

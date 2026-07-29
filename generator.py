@@ -1,5 +1,5 @@
-from collections import Counter
 import json
+from typing import Counter
 
 from dotenv import load_dotenv
 from langchain_google_genai import ChatGoogleGenerativeAI
@@ -7,6 +7,19 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 from server.prompts import load_prompt
 from server.rag.retriever import retrieve_examples
 from server.formatter import format_mistakes_for_retrieval, format_mistakes_for_prompt
+
+from server.difficulty import (
+    use_computed_difficulties,
+)
+from server.exercise_plan import (
+    create_exercise_plan,
+)
+from server.utils import (
+    extract_response_text,
+    get_plan_distribution,
+    normalize_hint_balloons,
+    parse_json_response,
+)
 
 load_dotenv()
 
@@ -24,175 +37,405 @@ VALID_TOPICS = {
 }
 
 
-def determine_focus_topic(mistakes: list[dict]) -> str:
-    polynomial_topics = [
-        mistake["method"]
-        for mistake in mistakes
-        if (
-            mistake.get("type") == "polynomial"
-            and mistake.get("method") in VALID_TOPICS
-        )
-    ]
-
-    if polynomial_topics:
-        return Counter(polynomial_topics).most_common(1)[0][0]
-
-    # Fallback when there are no polynomial mistakes.
-    return "common_factor"
-
-
-def determine_difficulty(
-    accuracy: float,
-    avg_time: float,
+def build_retrieval_examples(
+    exercise_plan: list[dict],
+    mistakes: list[dict],
 ) -> str:
-    if accuracy < 0.5:
-        difficulty = "easy"
-    elif accuracy < 0.75:
-        difficulty = "medium"
-    elif accuracy < 0.9:
-        difficulty = "hard"
-    else:
-        difficulty = "very_hard"
+    retrieval_mistakes = format_mistakes_for_retrieval(mistakes)
 
-    return difficulty
+    sections: list[str] = []
 
+    for item in exercise_plan:
+        examples = retrieve_examples(
+            topic=item["method"],
+            difficulty=item["difficulty"],
+            mistakes=retrieval_mistakes,
+            k=max(2, item["count"]),
+        )
 
-def analyze_player(data: dict) -> tuple[str, str]:
-    difficulty = determine_difficulty(
-        accuracy=data["accuracy"],
-        avg_time=data["avg_time"],
-    )
+        section = "\n".join(
+            [
+                f"Method: {item['method']}",
+                ("Difficulty: " f"{item['difficulty']}"),
+                ("Required count: " f"{item['count']}"),
+                ("Category: " f"{item['category']}"),
+                "Examples:",
+                *examples,
+            ]
+        )
 
-    topic = determine_focus_topic(
-        data.get("mistakes", [])
-    )
+        sections.append(section)
 
-    return difficulty, topic
+    return "\n\n".join(sections)
 
-def extract_response_text(response) -> str:
-    content = response.content
-
-    if isinstance(content, str):
-        return content
-
-    if isinstance(content, list):
-        text_parts = []
-
-        for item in content:
-            if isinstance(item, str):
-                text_parts.append(item)
-            elif (
-                isinstance(item, dict)
-                and "text" in item
-            ):
-                text_parts.append(
-                    str(item["text"])
-                )
-
-        return "".join(text_parts)
-
-    raise ValueError(
-        "Unsupported model response format"
-    )
-
-def parse_json_response(raw_text: str):
-    cleaned_text = raw_text.strip()
-
-    # Some models may wrap JSON in a Markdown code fence.
-    if cleaned_text.startswith("```"):
-        lines = cleaned_text.splitlines()
-
-        if lines and lines[0].startswith("```"):
-            lines = lines[1:]
-
-        if lines and lines[-1].strip() == "```":
-            lines = lines[:-1]
-
-        cleaned_text = "\n".join(lines).strip()
-
-    try:
-        return json.loads(cleaned_text)
-    except json.JSONDecodeError as exc:
-        raise ValueError(
-            "The model did not return valid JSON. "
-            f"Received:\n{raw_text}"
-        ) from exc
 
 polynomial_chain = load_prompt("polynomial") | llm
 question_chain = load_prompt("question") | llm
+hint_chain = load_prompt("hint") | llm
 
-def run_generate_polynomials(player_data: dict):
-    mistakes = player_data.get("mistakes", [])
 
-    difficulty, topic = analyze_player(
-        player_data
+def run_generate_polynomials(
+    player_data: dict,
+):
+    mistakes = player_data.get(
+        "mistakes",
+        [],
     )
 
-    retrieval_mistakes = (
-        format_mistakes_for_retrieval(mistakes)
-    )
+    mistakes_description = format_mistakes_for_prompt(mistakes)
 
-    examples = retrieve_examples(
-        topic=topic,
-        difficulty=difficulty,
-        mistakes=retrieval_mistakes,
-        k=5,
-    )
+    method_analysis = use_computed_difficulties(player_data["methods"])
 
-    mistakes_description = (
-        format_mistakes_for_prompt(mistakes)
+    exercise_plan = create_exercise_plan(method_analysis)
+
+    examples = build_retrieval_examples(
+        exercise_plan=exercise_plan,
+        mistakes=mistakes,
     )
 
     print("Mistakes sent to model:")
     print(mistakes_description)
+
+    print("\nMethod analysis:")
+    print(
+        json.dumps(
+            method_analysis,
+            indent=2,
+        )
+    )
+
+    print("\nExercise plan:")
+    print(
+        json.dumps(
+            exercise_plan,
+            indent=2,
+        )
+    )
 
     print("\nRetrieved examples:")
     print(examples)
 
     response = polynomial_chain.invoke(
         {
-            "accuracy": player_data["accuracy"],
-            "avg_time": player_data["avg_time"],
-            "topic": topic,
-            "difficulty": difficulty,
-            "mistakes": mistakes_description,
-            "examples": "\n\n".join(examples),
+            "method_performance": json.dumps(
+                method_analysis,
+                indent=2,
+            ),
+            "exercise_plan": json.dumps(
+                exercise_plan,
+                indent=2,
+            ),
+            "examples": examples,
+            "total_exercises": 6,
         }
     )
 
+    print(f"Response:")
+    print(response)
+
     raw_text = extract_response_text(response)
+
     parsed = parse_json_response(raw_text)
 
     return {
         "raw": parsed,
-        "difficulty": difficulty,
-        "topic": topic,
     }
 
 
-def run_generate_questions(player_data: dict):
-    mistakes = player_data.get("mistakes", [])
+VALID_DIFFICULTIES = {
+    "easy",
+    "medium",
+    "hard",
+    "very_hard",
+}
 
-    difficulty, topic = analyze_player(
-        player_data
+
+def validate_question_response(
+    parsed: object,
+    exercise_plan: list[dict],
+    expected_count: int,
+) -> list[dict]:
+    if not isinstance(parsed, list):
+        raise ValueError(
+            "The question model response must be a JSON array."
+        )
+
+    if len(parsed) != expected_count:
+        raise ValueError(
+            "The question model returned "
+            f"{len(parsed)} questions; expected {expected_count}."
+        )
+
+    normalized_questions: list[dict] = []
+
+    for expected_id, question in enumerate(
+        parsed,
+        start=1,
+    ):
+        if not isinstance(question, dict):
+            raise ValueError(
+                f"Question {expected_id} must be a JSON object."
+            )
+
+        method = question.get("method")
+        difficulty = question.get("difficulty")
+        answer = question.get("respuesta_correcta")
+
+        if not isinstance(answer, bool):
+            raise ValueError(
+                f"Question {expected_id} must have a boolean "
+                "as respuesta_correcta."
+            )
+
+        if method not in VALID_TOPICS:
+            raise ValueError(
+                f"Question {expected_id} has an invalid method: "
+                f"{method!r}."
+            )
+
+        if difficulty not in VALID_DIFFICULTIES:
+            raise ValueError(
+                f"Question {expected_id} has an invalid difficulty: "
+                f"{difficulty!r}."
+            )
+
+        if not isinstance(answer, bool):
+            raise ValueError(
+                f"Question {expected_id} must have a boolean "
+                "as respuesta_correcta."
+            )
+
+        contexto = str(
+            question.get("contexto", "")
+        ).strip()
+
+        pregunta = str(
+            question.get("pregunta", "")
+        ).strip()
+
+        explicacion = str(
+            question.get("explicacion", "")
+        ).strip()
+
+        if not contexto:
+            raise ValueError(
+                f"Question {expected_id} has no contexto."
+            )
+
+        if not pregunta:
+            raise ValueError(
+                f"Question {expected_id} has no pregunta."
+            )
+
+        if not pregunta.endswith("?"):
+            raise ValueError(
+                f"Question {expected_id} must end with '?'."
+            )
+
+        if not explicacion:
+            raise ValueError(
+                f"Question {expected_id} has no explicacion."
+            )
+
+        normalized_questions.append(
+            {
+                "id": expected_id,
+                "method": method,
+                "difficulty": difficulty,
+                "contexto": contexto,
+                "pregunta": pregunta,
+                "respuesta_correcta": answer,
+                "explicacion": explicacion,
+            }
+        )
+
+    expected_distribution = get_plan_distribution(
+        exercise_plan,
     )
 
-    mistakes_description = (
-        format_mistakes_for_prompt(mistakes)
+    actual_distribution = Counter(
+        (
+            question["method"],
+            question["difficulty"],
+        )
+        for question in normalized_questions
+    )
+
+    if actual_distribution != expected_distribution:
+        raise ValueError(
+            "The generated questions do not follow the "
+            "exercise plan.\n"
+            f"Expected: {dict(expected_distribution)}\n"
+            f"Received: {dict(actual_distribution)}"
+        )
+
+    # answers = Counter(
+       # question["respuesta_correcta"]
+       # for question in normalized_questions
+    # )
+
+    # if answers[True] != 5 or answers[False] != 5:
+        # raise ValueError(
+           #  "The generated questions must contain exactly "
+           #  "5 true and 5 false answers. "
+           #  f"Received: {dict(answers)}"
+        # )
+
+    return normalized_questions
+
+
+def run_generate_questions(
+    player_data: dict,
+):
+    method_analysis = use_computed_difficulties(
+        player_data["methods"],
+    )
+
+    exercise_plan = create_exercise_plan(
+        method_analysis,
+        total_exercises=10,
+    )
+
+    print("\nQuestion method analysis:")
+    print(
+        json.dumps(
+            method_analysis,
+            indent=2,
+        )
+    )
+
+    print("\nQuestion exercise plan:")
+    print(
+        json.dumps(
+            exercise_plan,
+            indent=2,
+        )
     )
 
     response = question_chain.invoke(
         {
-            "accuracy": player_data["accuracy"],
-            "avg_time": player_data["avg_time"],
-            "topic": topic,
-            "difficulty": difficulty,
-            "mistakes": mistakes_description,
+            "method_performance": json.dumps(
+                method_analysis,
+                indent=2,
+                ensure_ascii=False,
+            ),
+            "exercise_plan": json.dumps(
+                exercise_plan,
+                indent=2,
+                ensure_ascii=False,
+            ),
+            "total_questions": 10,
         }
     )
 
+    print("\nQuestion model response:")
+    print(response)
+
+    raw_text = extract_response_text(response)
+    parsed = parse_json_response(raw_text)
+
+    validated_questions = validate_question_response(
+        parsed=parsed,
+        exercise_plan=exercise_plan,
+        expected_count=10,
+    )
+
     return {
-        "raw": extract_response_text(response),
-        "difficulty": difficulty,
-        "topic": topic,
+        "raw": validated_questions,
+    }
+
+
+def validate_hint_response(
+    parsed: object,
+    hint_number: int,
+) -> dict:
+    if not isinstance(parsed, dict):
+        raise ValueError("The model hint response must be " "a JSON object.")
+
+    balloons = normalize_hint_balloons(parsed.get("balloons"))
+
+    methods = parsed.get(
+        "methods",
+        [],
+    )
+
+    if not isinstance(methods, list):
+        methods = []
+
+    methods = [method for method in methods if method in VALID_TOPICS]
+
+    return {
+        "hint_number": hint_number,
+        "balloons": balloons,
+        "methods": methods,
+        "is_solution": hint_number == 3,
+    }
+
+
+def run_generate_hint(
+    hint_data: dict,
+):
+    polynomial = hint_data["polynomial"]
+    current_factorization = hint_data.get(
+        "current_factorization",
+        "",
+    )
+
+    mistakes = hint_data.get(
+        "mistakes",
+        [],
+    )
+
+    hints_asked = hint_data.get(
+        "hints_asked",
+        0,
+    )
+
+    hint_number = hints_asked + 1
+
+    mistakes_description = format_mistakes_for_prompt(mistakes)
+
+    if not mistakes_description.strip():
+        mistakes_description = (
+            "El estudiante todavía no ha cometido "
+            "errores registrados en este ejercicio."
+        )
+
+    print("\nGenerating hint:")
+    print(f"Polynomial: {polynomial}")
+    print("Current factorization: " f"{current_factorization}")
+    print(f"Hint number: {hint_number}")
+
+    print("\nMistakes sent to hint model:")
+    print(mistakes_description)
+
+    response = hint_chain.invoke(
+        {
+            "polynomial": polynomial,
+            "current_factorization": (
+                current_factorization or "Todavía no hay una factorización."
+            ),
+            "hint_number": hint_number,
+            "mistakes": mistakes_description,
+            "available_methods": json.dumps(
+                sorted(VALID_TOPICS),
+                ensure_ascii=False,
+            ),
+        }
+    )
+
+    print("\nHint model response:")
+    print(response)
+
+    raw_text = extract_response_text(response)
+
+    parsed = parse_json_response(raw_text)
+
+    validated = validate_hint_response(
+        parsed=parsed,
+        hint_number=hint_number,
+    )
+
+    return {
+        "raw": validated,
     }
