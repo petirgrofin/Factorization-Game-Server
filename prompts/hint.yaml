@@ -69,7 +69,11 @@ template: |
   16. No menciones modelos, prompts, JSON ni diagnósticos internos
       dentro de los globos.
   17. El arreglo "methods" debe incluir solamente métodos de la
-      lista permitida.
+      lista permitida, pero en español. Es decir:
+      - common_factor pasa a ser factor común
+      - difference_of_squares pasa a ser diferencia de cuadrados
+      - perfect_square_trinomial pasa a ser trinomio cuadrado perfecto
+      - inspection pasa a ser inspección
   18. No des la solución completa en las pistas 1 o 2.
 
   COMPORTAMIENTO SEGÚN LA PISTA:
@@ -79,6 +83,7 @@ template: |
   - Da una indicación breve sobre qué observar o qué introducir.
   - No des la factorización completa.
   - No reveles todos los números necesarios para terminar.
+  - Explica de forma breve qué estuvo mal en el intento.
 
   PISTA 2:
   - Amplía la primera pista.
