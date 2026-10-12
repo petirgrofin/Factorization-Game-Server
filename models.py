@@ -1,4 +1,5 @@
-from typing import Annotated, Literal, Union
+from datetime import datetime
+from typing import Annotated, Any, Literal, Union
 
 from pydantic import BaseModel, Field
 
@@ -99,3 +100,37 @@ class HintResponse(BaseModel):
     balloons: list[str] = Field(min_length=1, max_length=2)
     methods: list[MethodName] = Field(default_factory=list)
     is_solution: bool
+
+
+class PlayerRegistration(BaseModel):
+    metadata: dict[str, Any] = Field(default_factory=dict)
+
+
+class SessionStart(BaseModel):
+    session_id: str | None = Field(default=None, min_length=1, max_length=128)
+    metadata: dict[str, Any] = Field(default_factory=dict)
+
+
+class SessionEnd(BaseModel):
+    duration_seconds: float | None = Field(default=None, ge=0)
+
+
+class TelemetryEvent(BaseModel):
+    """A client-observed gameplay event; payload keeps experimental data extensible."""
+
+    event_type: str = Field(min_length=1, max_length=80)
+    occurred_at: datetime | None = None
+    direction: Literal[
+        "client_to_server", "server_to_client", "player_to_game",
+        "game_to_player", "internal",
+    ] = "client_to_server"
+    method: MethodName | None = None
+    difficulty: Difficulty | None = None
+    previous_difficulty: Difficulty | None = None
+    action: DifficultyAction | None = None
+    polynomial: str | None = None
+    question_text: str | None = None
+    player_input: Any = None
+    correct: bool | None = None
+    elapsed_seconds: float | None = Field(default=None, ge=0)
+    payload: dict[str, Any] = Field(default_factory=dict)
